@@ -1,4 +1,4 @@
-function [Y] = StochasticHH_funcb(t, Ifunc,SigmaIn, Area, NoiseModel)
+function [Y] = StochasticHH_funcb(t, Ifunc,SigmaIn, Area, NoiseModel, Coupling)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % StochasticHH_func.m
@@ -41,7 +41,7 @@ nt = length(t);  % total
 nt1 = nt-1;  % at which to solve
 
 % Initial Values
-K = 0.5;
+K = Coupling;
 t0 = t(1);
 V0 = 0;
 
@@ -259,8 +259,8 @@ end
 for i=2:nt
 
   % Input Current
-  I = Ifunc(t(i-1)) + K*(V0 - V02);
-  I2 = Ifunc(t(i-1)) + K*(V02 - V0);
+  I = Ifunc(t(i-1)) + K*(V02 - V0);
+  I2 = Ifunc(t(i-1)) + K*(V0 - V02);
   
   I3 = Ifunc(t(i-1));
     
@@ -321,6 +321,8 @@ for i=2:nt
       KFluctuation = 0;
       NaFluctuation2 = 0;
       KFluctuation2 = 0;
+      NaFluctuation3 = 0;
+      KFluctuation3 = 0;
   end
   
   % Compute Fraction of open channels
@@ -332,6 +334,12 @@ for i=2:nt
     % Note: Impose bounds on fractions to avoid <0 or >1 in dV/dt equation, this doesn't directly alter the dynamics of the subunits or channels
     NaFraction = max(0, min(1, m0^3*h0 + NaFluctuation));  % Fluctuations are non-zero for Conductance Noise Models
     KFraction = max(0, min(1, n0^4 + KFluctuation));
+    
+    NaFraction2 = max(0, min(1, m02^3*h02 + NaFluctuation2));  % Fluctuations are non-zero for Conductance Noise Models
+    KFraction2 = max(0, min(1, n02^4 + KFluctuation2));
+    
+    NaFraction3 = max(0, min(1, m03^3*h03 + NaFluctuation3));  % Fluctuations are non-zero for Conductance Noise Models
+    KFraction3 = max(0, min(1, n03^4 + KFluctuation3));
   end
   
   % Update Voltage
@@ -361,7 +369,7 @@ for i=2:nt
   Y(i,13) = h2;
   Y(i,14) = n2;
   
-    Y(i,15) = t(i);
+  Y(i,15) = t(i);
   Y(i,16) = V3;
   Y(i,17) = NaFraction3;
   Y(i,18) = KFraction3;
