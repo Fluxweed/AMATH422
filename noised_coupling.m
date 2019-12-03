@@ -1,14 +1,17 @@
-function [Y varSim] = noised_coupling(sim, noOfNeurons,K, t, Ifunc,SigmaIn, Area, NoiseModel)
+function YCoupled = noised_coupling( noOfNeurons,K, t, Ifunc,SigmaIn, Area, NoiseModel)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% StochasticHH_func.m
-% Written by Joshua H. Goldwyn
+% noised_coupling.m
+% Written by AMATH422 group edited from Joshua Goldwyn
+% December,2019
 % April 22, 2011
 % Distributed with:
 
 %   JHG and E-Shea-Brown, "The what and where of channel noise in the Hodgkin-Huxley equations", submitted to PLoS Computational Biology, 2011.
 
 %%% Inputs
+% noOfNeurons is the number of neurons on a row to be simulated
+% K is the coupling constant
 % t is vector of time values (ms)
 % Ifunc is a function @(t)f(t) that returns stimulus value as a function of time (in ms)
 % SigmaIn: st. dev. of current noise
@@ -22,14 +25,19 @@ function [Y varSim] = noised_coupling(sim, noOfNeurons,K, t, Ifunc,SigmaIn, Area
 %   Markov Chain: 'Markov Chain', must also have value for Area
 
 %%% Outputs
-% Y(:,1) : t
-% Y(:,2) : V
-% Y(:,3) : fraction open Na channels
-% Y(:,4) : fraction open K channels
-% Y(:,5) : m
-% Y(:,6) : h
-% Y(:,7) : n
-
+% A struct with following variables
+%    NaFraction: - fraction of open NA channels, each row 
+%    is a timestep, each column is a neuron
+%    KFraction: - fraction of open K channels, each row 
+%    is a timestep, each column is a neuron
+%      V: Voltage traces for each neuron
+%      t: timesteps
+%      m: subunits
+%      h: 
+%      n:
+%      I: Input current (both coupled+input)
+%      Icoupled: just coupled current
+% 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initialize quantities needed to run solver
@@ -52,7 +60,7 @@ t0 = t(1);
 
 
 simSystem = zeros(nt, noOfNeurons);
-varSim = struct();
+YCoupled = struct();
 %V0= rand*20*ones(1,noOfNeurons); % random assign the initial values to individual neurons
 V0 = 20*rand(1,noOfNeurons)
 for i =1:noOfNeurons
@@ -66,10 +74,13 @@ NaFraction = m0.^3.*h0;
 KFraction = n0.^4;
 
 % Initialize Output
-Y = zeros(nt,7);
-%Y(1,:) = [t0, V0, m0^3*h0, n0^4, m0, h0, n0];
-
-
+YCoupled.NaFraction(1,:) = NaFraction;
+YCoupled.KFraction(1,:) = KFraction;
+YCoupled.V(1,:) = V0;
+YCoupled.t(1) = t0;
+YCoupled.m(1,:) = m0;
+YCoupled.h(1,:) = h0;
+YCoupled.n(1,:) = n0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Parameter Values
@@ -164,18 +175,11 @@ end
 
 % Conductance Noise (FL Channel Model)
 if strfind(NoiseModel,'FoxLuSystemSize')
-    if sim ==1
-        NaHat =zeros(8, nSim);
-        KHat = zeros(5,nSim);
-        NaNoise = randn(8,nt1,nSim);
-        KNoise = randn(5,nt1,nSim);
-    else
-        NaHat = zeros(8,1);  %Initial values set to 0
-        KHat = zeros(5,1); %Initial values set to 0
-        NaNoise = randn(8, nt1);
-        KNoise = randn(5, nt1);
-        
-    end
+    NaHat =zeros(8, noOfNeurons);
+    KHat = zeros(5,noOfNeurons);
+    NaNoise = randn(8,nt1,noOfNeurons);
+    KNoise = randn(5,nt1,noOfNeurons);
+    
     
     % Drift Na
     ANa = @(V) ...
@@ -272,29 +276,19 @@ for i=2:nt
                 NaFluctuation = sum(NaNoise);
                 KFluctuation = sum(KNoise);
             case 'FoxLuSystemSize'  % System Size (Fox and Lu)
-                if sim ==1
-                    %deterministic part
-                    NaFluctuation = zeros(1,nSim);
-                    KFluctuation = zeros(1,nSim);
-                    NaBar = [(1-m0)^3*(1-h0) , 3*(1-m0)^2*m0*(1-h0) , 3*(1-m0)*m0^2*(1-h0) , m0^3*(1-h0) , (1-m0)^3*h0 , 3*(1-m0)^2*m0*h0 , 3*(1-m0)*m0^2*h0 , m0^3*h0];
-                    KBar  = [(1-n0)^4 , 4*n0*(1-n0)^3 , 6*n0^2*(1-n0)^2  , 4*n0^3*(1-n0)  , n0^4];
+              
+                NaFluctuation = zeros(1,noOfNeurons);
+                KFluctuation = zeros(1,noOfNeurons);
+                for j =1:noOfNeurons
+                    NaBar = [(1-m0(j))^3*(1-h0(j)) , 3*(1-m0(j))^2*m0(j)*(1-h0(j)) , 3*(1-m0(j))*m0(j)^2*(1-h0(j)) , m0(j)^3*(1-h0(j)) , (1-m0(j))^3*h0(j) , 3*(1-m0(j))^2*m0(j)*h0(j) , 3*(1-m0(j))*m0(j)^2*h0(j) , m0(j)^3*h0(j)];
+                    KBar  = [(1-n0(j))^4 , 4*n0(j)*(1-n0(j))^3 , 6*n0(j)^2*(1-n0(j))^2  , 4*n0(j)^3*(1-n0(j))  , n0(j)^4];
                     
-                    for j =1:nSim
-                        NaHat(:,j) = NaHat(:,j) + dt*ANa(V0(j))*NaHat(:,j) + sqrt(dt)*SNa(V0(j),NaBar,NNa)*NaNoise(:,i-1,j);
-                        KHat(:,j) =  KHat(:,j)  + dt*AK(V0(j))*KHat(:,j)  + sqrt(dt)*SK(V0(j),KBar)*KNoise(:,i-1,j);
-                        
-                        NaFluctuation(j) = NaHat(end) ;
-                        KFluctuation(j)  = KHat(end) ;
-                    end
                     
-                else
-                    NaBar = [(1-m0)^3*(1-h0) , 3*(1-m0)^2*m0*(1-h0) , 3*(1-m0)*m0^2*(1-h0) , m0^3*(1-h0) , (1-m0)^3*h0 , 3*(1-m0)^2*m0*h0 , 3*(1-m0)*m0^2*h0 , m0^3*h0];
-                    KBar  = [(1-n0)^4 , 4*n0*(1-n0)^3 , 6*n0^2*(1-n0)^2  , 4*n0^3*(1-n0)  , n0^4];
-                    NaHat = NaHat + dt*ANa(V0)*NaHat + sqrt(dt)*SNa(V0,NaBar,NNa)*NaNoise(:,i-1);
-                    KHat =  KHat  + dt*AK(V0) *KHat  + sqrt(dt)*SK(V0,KBar)*KNoise(:,i-1);
-                    NaFluctuation = NaHat(end) ;
-                    KFluctuation  = KHat(end) ;
+                    NaHat(:,j) = NaHat(:,j) + dt*ANa(V0(j))*NaHat(:,j) + sqrt(dt)*SNa(V0(j),NaBar,NNa)*NaNoise(:,i-1,j);
+                    KHat(:,j) =  KHat(:,j)  + dt*AK(V0(j))*KHat(:,j)  + sqrt(dt)*SK(V0(j),KBar)*KNoise(:,i-1,j);
                     
+                    NaFluctuation(j) = NaHat(end) ;
+                    KFluctuation(j)  = KHat(end) ;
                 end
                 
                 
@@ -303,15 +297,22 @@ for i=2:nt
         NaFluctuation = 0;
         KFluctuation = 0;
     end
-    
-    % Compute Fraction of open channels
-    if strfind(NoiseModel,'MarkovChain')
+   if strfind(NoiseModel,'MarkovChain')
         [MCNa, MCK]= MarkovChainFraction(V0, MCNa, MCK, t0,dt);
         NaFraction = MCNa(4,2) / NNa;
         KFraction = MCK(5) / NK;
-    else
+    elseif strfind(NoiseModel,'FoxLuSystemSize') 
         % Note: Impose bounds on fractions to avoid <0 or >1 in dV/dt equation, this doesn't directly alter the dynamics of the subunits or channels
         for k = 1:noOfNeurons
+          
+            NaFraction(k) = max(0, min(1, m0(k)^3*h0(k) + NaFluctuation(k)));  % Fluctuations are non-zero for Conductance Noise Models
+            KFraction(k) = max(0, min(1, n0(k)^4 + KFluctuation(k)));
+            
+            
+        end
+    else
+         for k = 1:noOfNeurons
+          
             NaFraction(k) = max(0, min(1, m0(k)^3*h0(k) + NaFluctuation));  % Fluctuations are non-zero for Conductance Noise Models
             KFraction(k) = max(0, min(1, n0(k)^4 + KFluctuation));
             
@@ -322,29 +323,23 @@ for i=2:nt
     % Update Voltage
     for k = 1:noOfNeurons
         Vrhs(k) = (-gNa*(NaFraction(k)).*(V0(k) - ENa)-gK*(KFraction(k)).*(V0(k) - EK) - gL*(V0(k)-EL) + I(k))/C;
-        V(k) = V0(k) + dt*Vrhs(k) + sqrt(dt)*VNoise(i-1)/C;    % VNoise is non-zero for Current Noise Model
+        V(k) = V0(k) + dt*Vrhs(k) + sqrt(dt)*VNoise(i-1)/C ;   % VNoise is non-zero for Current Noise Model
         
     end
     
     
     % Save Outputs
-    Y(i,1) = t(i);
-    Y(i,2) = V(:,1);
-    Y(i,3) = NaFraction(:,1);
-    Y(i,4) = KFraction(:,1);
-    %         Y(i,5) = m;
-    %         Y(i,6) = h;
-    %         Y(i,7) = n;
-    index = i-1;
-    varSim.NaFraction(index,:) = NaFraction;
-    varSim.KFraction(index,:) = KFraction;
-    varSim.V(index,:) = V;
-    varSim.t(index) = t(i);
-    varSim.m(index,:) = m;
-    varSim.h(index,:) = h;
-    varSim.n(index,:) = n;
-    varSim.I(index,:) = I;
-    varSim.Icoupled(index,:) = I_coupled;
+ 
+ 
+    YCoupled.NaFraction(i,:) = NaFraction;
+    YCoupled.KFraction(i,:) = KFraction;
+    YCoupled.V(i,:) = V;
+    YCoupled.t(i) = t(i);
+    YCoupled.m(i,:) = m;
+    YCoupled.h(i,:) = h;
+    YCoupled.n(i,:) = n;
+    YCoupled.I(i,:) = I;
+    YCoupled.Icoupled(i,:) = I_coupled;
     
     
     V0 =V;
@@ -352,8 +347,6 @@ for i=2:nt
     h0 = h;
     n0 = n;
     
-    
-    % Keep "old values" to use in next Euler time step
     
 end  % End loop over time for SDE solver
 

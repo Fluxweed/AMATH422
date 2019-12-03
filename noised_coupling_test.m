@@ -5,7 +5,7 @@ clc
 
 % without coupling terms 
 k = 0.0
-[Y varSim] = noised_coupling(2,5,k, [0:0.01:200], @(t)sin(t), [], 10, 'Subunit');
+varSim = noised_coupling(5,k, [0:0.01:200], @(t)sin(t), [], 10, 'Subunit');
 t = varSim.t';
 cmap = colormap(lines);
 
@@ -14,7 +14,7 @@ for i =1:size(varSim.V,2)
 end
 %
 k = 0.5
-[Y varSim] = noised_coupling(2,5,k, [0:0.01:200], @(t)sin(t), [], 10, 'Subunit');
+varSim = noised_coupling(5,k, [0:0.01:200], @(t)sin(t), [], 10, 'Subunit');
 t = varSim.t';
 cmap = colormap(lines);
 figure
