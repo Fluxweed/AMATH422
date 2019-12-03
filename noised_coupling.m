@@ -1,4 +1,4 @@
-function [Y varSim] = StochasticHH_func(sim, noOfNeurons,K, t, Ifunc,SigmaIn, Area, NoiseModel)
+function [Y varSim] = noised_coupling(sim, noOfNeurons,K, t, Ifunc,SigmaIn, Area, NoiseModel)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % StochasticHH_func.m
@@ -53,7 +53,7 @@ t0 = t(1);
 
 simSystem = zeros(nt, noOfNeurons);
 varSim = struct();
-V0= zeros(1,noOfNeurons);
+V0= rand*20*ones(1,noOfNeurons);
 for i =1:noOfNeurons
     m0(i) = alpham(V0(1)) / (alpham(V0(1)) + betam(V0(1))); % m
     h0(i) = alphah(V0(1)) / (alphah(V0(1)) + betah(V0(1))); % h
@@ -344,6 +344,7 @@ for i=2:nt
     varSim.I(i,:) = I;
     varSim.Icoupled(i,:) = I_coupled;
     
+    
     V0 =V;
     m0 = m;
     h0 = h;
@@ -367,11 +368,11 @@ else
     
     for i = 1:size(V0,2)
         if i == 1
-            Vcoupled(i) = V0(i) - V0(i+1);
+            Vcoupled(i) = V0(i + 1) - V0(i);
         elseif i == size(V0,2)
-            Vcoupled(i) = V0(i) - V0(i-1);
+            Vcoupled(i) = V0(i - 1) - V0(i);
         else
-            Vcoupled(i) = (V0(i) - V0(i-1)) + (V0(i) - V0(i+1));
+            Vcoupled(i) = (V0(i - 1) - V0(i)) + (V0(i + 1) - V0(i));
         end
     end
 end
