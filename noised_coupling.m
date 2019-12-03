@@ -53,11 +53,12 @@ t0 = t(1);
 
 simSystem = zeros(nt, noOfNeurons);
 varSim = struct();
-V0= rand*20*ones(1,noOfNeurons);
+%V0= rand*20*ones(1,noOfNeurons); % random assign the initial values to individual neurons
+V0 = 20*rand(1,noOfNeurons)
 for i =1:noOfNeurons
-    m0(i) = alpham(V0(1)) / (alpham(V0(1)) + betam(V0(1))); % m
-    h0(i) = alphah(V0(1)) / (alphah(V0(1)) + betah(V0(1))); % h
-    n0(i) = alphan(V0(1)) / (alphan(V0(1)) + betan(V0(1))); % n
+    m0(i) = alpham(V0(i)) / (alpham(V0(i)) + betam(V0(i))); % m
+    h0(i) = alphah(V0(i)) / (alphah(V0(i)) + betah(V0(i))); % h
+    n0(i) = alphan(V0(i)) / (alphan(V0(i)) + betan(V0(i))); % n
 end
 
 
@@ -321,7 +322,7 @@ for i=2:nt
     % Update Voltage
     for k = 1:noOfNeurons
         Vrhs(k) = (-gNa*(NaFraction(k)).*(V0(k) - ENa)-gK*(KFraction(k)).*(V0(k) - EK) - gL*(V0(k)-EL) + I(k))/C;
-        V(k) = V0(k) + dt*Vrhs(k) + sqrt(dt)*VNoise(i-1)/C ;   % VNoise is non-zero for Current Noise Model
+        V(k) = V0(k) + dt*Vrhs(k) + sqrt(dt)*VNoise(i-1)/C;    % VNoise is non-zero for Current Noise Model
         
     end
     
@@ -334,15 +335,16 @@ for i=2:nt
     %         Y(i,5) = m;
     %         Y(i,6) = h;
     %         Y(i,7) = n;
-    varSim.NaFraction(i,:) = NaFraction;
-    varSim.KFraction(i,:) = KFraction;
-    varSim.V(i,:) = V;
-    varSim.t(i) = t(i);
-    varSim.m(i,:) = m;
-    varSim.h(i,:) = h;
-    varSim.n(i,:) = n;
-    varSim.I(i,:) = I;
-    varSim.Icoupled(i,:) = I_coupled;
+    index = i-1;
+    varSim.NaFraction(index,:) = NaFraction;
+    varSim.KFraction(index,:) = KFraction;
+    varSim.V(index,:) = V;
+    varSim.t(index) = t(i);
+    varSim.m(index,:) = m;
+    varSim.h(index,:) = h;
+    varSim.n(index,:) = n;
+    varSim.I(index,:) = I;
+    varSim.Icoupled(index,:) = I_coupled;
     
     
     V0 =V;

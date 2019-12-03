@@ -1,16 +1,28 @@
 %testbench for noised coupled neurons
 close all
 clear all
+clc
 
-for k = 0:0.1:0.5
-    [Y varSim] = noised_coupling(2,5,k, [0:0.01:200], @(t)sin(t), [], 10, 'Subunit');
-    t = varSim.t';
-    cmap = colormap(lines);
-    figure
-    for i =1:size(varSim.V,2)
-        plot(t, varSim.V(:,i),'Color', cmap(i,:)); hold on;
-    end
+% without coupling terms 
+k = 0.0
+[Y varSim] = noised_coupling(2,5,k, [0:0.01:200], @(t)sin(t), [], 10, 'Subunit');
+t = varSim.t';
+cmap = colormap(lines);
+
+for i =1:size(varSim.V,2)
+    plot(t, varSim.V(:,i),'Color', cmap(i,:)); hold on;
 end
+%
+k = 0.5
+[Y varSim] = noised_coupling(2,5,k, [0:0.01:200], @(t)sin(t), [], 10, 'Subunit');
+t = varSim.t';
+cmap = colormap(lines);
+figure
+for i =1:size(varSim.V,2)
+    plot(t, varSim.V(:,i),'Color', cmap(i,:)); hold on;
+end
+
+
 
 
 %get variables
