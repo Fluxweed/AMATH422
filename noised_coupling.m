@@ -280,15 +280,24 @@ for i=2:nt
                 NaFluctuation = zeros(1,noOfNeurons);
                 KFluctuation = zeros(1,noOfNeurons);
                 for j =1:noOfNeurons
-                    NaBar = [(1-m0(j))^3*(1-h0(j)) , 3*(1-m0(j))^2*m0(j)*(1-h0(j)) , 3*(1-m0(j))*m0(j)^2*(1-h0(j)) , m0(j)^3*(1-h0(j)) , (1-m0(j))^3*h0(j) , 3*(1-m0(j))^2*m0(j)*h0(j) , 3*(1-m0(j))*m0(j)^2*h0(j) , m0(j)^3*h0(j)];
-                    KBar  = [(1-n0(j))^4 , 4*n0(j)*(1-n0(j))^3 , 6*n0(j)^2*(1-n0(j))^2  , 4*n0(j)^3*(1-n0(j))  , n0(j)^4];
+                    NaBar = [(1-m0(j))^3*(1-h0(j)) , 3*(1-m0(j))^2*m0(j)*(1-h0(j)) , ...
+                             3*(1-m0(j))*m0(j)^2*(1-h0(j)) , m0(j)^3*(1-h0(j)) , ...
+                             (1-m0(j))^3*h0(j) , 3*(1-m0(j))^2*m0(j)*h0(j) , ...
+                            3*(1-m0(j))*m0(j)^2*h0(j) , m0(j)^3*h0(j)];
+                  
+                    
+                    KBar  = [(1-n0(j))^4 , 4*n0(j)*(1-n0(j))^3 , ...
+                        6*n0(j)^2*(1-n0(j))^2  , 4*n0(j)^3*(1-n0(j))  , n0(j)^4];
                     
                     
-                    NaHat(:,j) = NaHat(:,j) + dt*ANa(V0(j))*NaHat(:,j) + sqrt(dt)*SNa(V0(j),NaBar,NNa)*NaNoise(:,i-1,j);
-                    KHat(:,j) =  KHat(:,j)  + dt*AK(V0(j))*KHat(:,j)  + sqrt(dt)*SK(V0(j),KBar)*KNoise(:,i-1,j);
+                    NaHat(:,j) = NaHat(:,j) + dt*ANa(V0(j))*NaHat(:,j) ...
+                    + sqrt(dt)*SNa(V0(j),NaBar,NNa)*NaNoise(:,i-1,j);
+                
+                    KHat(:,j) =  KHat(:,j)  + dt*AK(V0(j))*KHat(:,j) ...
+                    + sqrt(dt)*SK(V0(j),KBar)*KNoise(:,i-1,j);
                     
-                    NaFluctuation(j) = NaHat(end) ;
-                    KFluctuation(j)  = KHat(end) ;
+                    NaFluctuation(1,j) = NaHat(end,j) ;
+                    KFluctuation(1,j)  = KHat(end,j) ;
                 end
                 
                 
