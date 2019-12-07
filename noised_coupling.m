@@ -224,16 +224,18 @@ end
 if strfind(NoiseModel,'MarkovChain')
     % Initialize channel states
     if isnumeric(Area)
-        MCNa(1,1) = floor(NNa*(1-m0)^3*(1-h0));
-        MCNa(2,1) = floor(NNa*3*(1-m0)^2*m0*(1-h0));
-        MCNa(3,1) = floor(NNa*3*(1-m0)^1*m0^2*(1-h0));
-        MCNa(4,1) = floor(NNa*(1-m0)*m0^3*(1-h0));
-        MCNa(1,2) = floor(NNa*(1-m0)^3*(h0));
-        MCNa(2,2) = floor(NNa*3*(1-m0)^2*m0*(h0));
-        MCNa(3,2) = floor(NNa*3*(1-m0)^1*m0^2*(h0));
-        MCNa(4,2) = NNa - sum(sum(MCNa));
-        MCK(1:4) = floor(NK*[(1-n0)^4 4*n0*(1-n0)^3 6*n0^2*(1-n0)^2 4*n0^3*(1-n0)^1 ]);
-        MCK(5) = NK-sum(sum(MCK));
+        for n = 1:noOfNeurons
+        MCNa(1,1,n) = floor(NNa*(1-m0(n))^3*(1-h0(n)));
+        MCNa(2,1,n) = floor(NNa*3*(1-m0(n))^2*m0(n)*(1-h0(n)));
+        MCNa(3,1,n) = floor(NNa*3*(1-m0(n))^1*m0(n)^2*(1-h0(n)));
+        MCNa(4,1,n) = floor(NNa*(1-m0(n))*m0(n)^3*(1-h0(n)));
+        MCNa(1,2,n) = floor(NNa*(1-m0(n))^3*(h0(n)));
+        MCNa(2,2,n) = floor(NNa*3*(1-m0(n))^2*m0(n)*(h0(n)));
+        MCNa(3,2,n) = floor(NNa*3*(1-m0(n))^1*m0(n)^2*(h0(n)));
+        MCNa(4,2,n) = NNa - sum(sum(MCNa(:,:,n)));
+        MCK(1:4,n) = floor(NK*[(1-n0(n))^4 4*n0(n)*(1-n0(n))^3 6*n0(n)^2*(1-n0(n))^2 4*n0(n)^3*(1-n0(n))^1 ]);
+        MCK(5,n) = NK-sum(sum(MCK(:,n)));
+        end
     end
 end
 
@@ -307,9 +309,11 @@ for i=2:nt
         KFluctuation = 0;
     end
    if strfind(NoiseModel,'MarkovChain')
-        [MCNa, MCK]= MarkovChainFraction(V0, MCNa, MCK, t0,dt);
-        NaFraction = MCNa(4,2) / NNa;
-        KFraction = MCK(5) / NK;
+       for iterator=1:noOfNeurons
+        [MCNa(:,:,iterator), MCK(:,iterator)]= MarkovChainFraction(V0(iterator), MCNa(:,:,iterator), MCK(:,iterator), t0,dt);
+        NaFraction(iterator) = MCNa(4,2,iterator) / NNa;
+        KFraction(iterator) = MCK(5,iterator) / NK;
+       end
     elseif strfind(NoiseModel,'FoxLuSystemSize') 
         % Note: Impose bounds on fractions to avoid <0 or >1 in dV/dt equation, this doesn't directly alter the dynamics of the subunits or channels
         for k = 1:noOfNeurons

@@ -4,17 +4,18 @@ clear all
 clc
 
 % without coupling terms 
-k = 0.0
-varSim = noised_coupling(5,k, [0:0.01:200], @(t)sin(t), [], 10, 'Subunit');
+k = 0.5
+varSim = noised_coupling(5,k, [0:0.01:200], @(t)0, [], 10, 'MarkovChain');
+%%
 t = varSim.t';
 cmap = colormap(lines);
 
 for i =1:size(varSim.V,2)
     plot(t, varSim.V(:,i),'Color', cmap(i,:)); hold on;
 end
-%
-k = 0.9
-%varSim = noised_coupling(5,k, [0:0.01:200], @(t)sin(t), [], 10, 'FoxLuSystemSize');
+%%
+k = 0.5
+varSim = noised_coupling(5,k, [0:0.01:100], @(t)4, [], 100, 'MarkovChain');
 t = varSim.t';
 cmap = colormap(lines);
 figure
