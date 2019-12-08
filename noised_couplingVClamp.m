@@ -57,12 +57,12 @@ t0 = t(1);
 %simulation for variance
 %no of simulation
 
-
+%rng(1);
 
 simSystem = zeros(nt, noOfNeurons);
 YCoupled = struct();
-%V0= rand*20*ones(1,noOfNeurons); % random assign the initial values to individual neurons
-V0 = 20*rand(1,noOfNeurons)
+V0= rand*20*ones(1,noOfNeurons); % random assign the initial values to individual neurons
+%V0 = 0;
 for i =1:noOfNeurons
     m0(i) = alpham(V0(i)) / (alpham(V0(i)) + betam(V0(i))); % m
     h0(i) = alphah(V0(i)) / (alphah(V0(i)) + betah(V0(i))); % h
@@ -142,8 +142,8 @@ if strfind(NoiseModel,'VClamp')
     ConductanceNoise = 1;
     NaWeiner = randn(nt1,7, noOfNeurons);
     KWeiner = randn(nt1,4, noOfNeurons);
-    NaNoise =0;  % Initialize
-    KNoise =0;  % Initialize
+    NaNoise = zeros(noOfNeurons, 7);
+    KNoise = zeros(noOfNeurons, 4);
     
     taum = @(V) 1./ (alpham(V) + betam(V));
     tauh = @(V) 1./ (alphah(V) + betah(V));
@@ -271,8 +271,6 @@ for i=2:nt
     if ~isempty(strfind(NoiseModel,'VClamp')) || ~isempty(strfind(NoiseModel,'FoxLuSystemSize'))
         switch NoiseModel
             case 'VClamp'  % Voltage Clamp (Linaro et al)
-                NaNoise = zeros(noOfNeurons, 7);
-                KNoise = zeros(noOfNeurons, 4);
                 for j =1:noOfNeurons
                     NaNoise(j,:) = NaNoise(j,:) + dt*(-NaNoise(j,:) ./ TauNa(V0(j))) + sqrt(dt)*(SigmaNa(V0(j)).*NaWeiner(i-1,:,j));
                      KNoise(j,:) = KNoise(j,:) + dt*(-KNoise(j,:) ./ TauK(V0(j))) + sqrt(dt)*(SigmaK(V0(j)).*KWeiner(i-1,:,j));
