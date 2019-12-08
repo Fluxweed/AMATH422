@@ -61,8 +61,7 @@ t0 = t(1);
 
 simSystem = zeros(nt, noOfNeurons);
 YCoupled = struct();
-%V0= rand*20*ones(1,noOfNeurons); % random assign the initial values to individual neurons
-V0 = 20*rand(1,noOfNeurons)
+V0 = 20*rand(1,noOfNeurons); %random initial conditions
 for i =1:noOfNeurons
     m0(i) = alpham(V0(i)) / (alpham(V0(i)) + betam(V0(i))); % m
     h0(i) = alphah(V0(i)) / (alphah(V0(i)) + betah(V0(i))); % h
@@ -140,10 +139,10 @@ end
 % Conductance Noise (Linaro et al Voltage Clamp)
 if strfind(NoiseModel,'VClamp')
     ConductanceNoise = 1;
-    NaWeiner = randn(nt1,7);
-    KWeiner = randn(nt1,4);
-    NaNoise =0;  % Initialize
-    KNoise =0;  % Initialize
+    NaWeiner = randn(nt1,7, noOfNeurons);
+    KWeiner = randn(nt1,4, noOfNeurons);
+    NaNoise = zeros(noOfNeurons, 7);  % Initialize
+    KNoise = zeros(noOfNeurons, 4);  % Initialize
     
     taum = @(V) 1./ (alpham(V) + betam(V));
     tauh = @(V) 1./ (alphah(V) + betah(V));
@@ -273,10 +272,12 @@ for i=2:nt
     if ~isempty(strfind(NoiseModel,'VClamp')) || ~isempty(strfind(NoiseModel,'FoxLuSystemSize'))
         switch NoiseModel
             case 'VClamp'  % Voltage Clamp (Linaro et al)
-                NaNoise = NaNoise + dt*(-NaNoise ./ TauNa(V0)) + sqrt(dt)*(SigmaNa(V0).*NaWeiner(i-1,:));
-                KNoise = KNoise + dt*(-KNoise ./ TauK(V0)) + sqrt(dt)*(SigmaK(V0).*KWeiner(i-1,:));
-                NaFluctuation = sum(NaNoise);
-                KFluctuation = sum(KNoise);
+                for j =1:noOfNeurons
+                    NaNoise(j,:) = NaNoise(j,:) + dt*(-NaNoise(j,:) ./ TauNa(V0(j))) + sqrt(dt)*(SigmaNa(V0(j)).*NaWeiner(i-1,:,j));
+                     KNoise(j,:) = KNoise(j,:) + dt*(-KNoise(j,:) ./ TauK(V0(j))) + sqrt(dt)*(SigmaK(V0(j)).*KWeiner(i-1,:,j));
+                end
+                NaFluctuation = sum(NaNoise,2);
+                KFluctuation = sum(KNoise,2);
             case 'FoxLuSystemSize'  % System Size (Fox and Lu)
               
                 NaFluctuation = zeros(1,noOfNeurons);
@@ -322,6 +323,12 @@ for i=2:nt
             KFraction(k) = max(0, min(1, n0(k)^4 + KFluctuation(k)));
             
             
+        end
+    elseif strfind(NoiseModel,'VClamp')
+        % Note: Impose bounds on fractions to avoid <0 or >1 in dV/dt equation, this doesn't directly alter the dynamics of the subunits or channels
+        for k = 1:noOfNeurons
+            NaFraction(k) = max(0, min(1, m0(k)^3*h0(k) + NaFluctuation(k)));  % Fluctuations are non-zero for Conductance Noise Models
+            KFraction(k) = max(0, min(1, n0(k)^4 + KFluctuation(k)));
         end
     else
          for k = 1:noOfNeurons
