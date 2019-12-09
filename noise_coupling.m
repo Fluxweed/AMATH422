@@ -141,10 +141,10 @@ end
 % Conductance Noise (Linaro et al Voltage Clamp)
 if strfind(NoiseModel,'VClamp')
     ConductanceNoise = 1;
-    NaWeiner = randn(nt1,7, noOfNeurons);
-    KWeiner = randn(nt1,4, noOfNeurons);
-    NaNoise = zeros(noOfNeurons, 7)*n_s;  % Initialize
-    KNoise = zeros(noOfNeurons, 4)*n_s;  % Initialize
+    NaWeiner = randn(nt1,7, noOfNeurons)*n_s;
+    KWeiner = randn(nt1,4, noOfNeurons)*n_s;
+    NaNoise = zeros(noOfNeurons, 7);  % Initialize
+    KNoise = zeros(noOfNeurons, 4);  % Initialize
     
     taum = @(V) 1./ (alpham(V) + betam(V));
     tauh = @(V) 1./ (alphah(V) + betah(V));
@@ -178,8 +178,8 @@ end
 if strfind(NoiseModel,'FoxLuSystemSize')
     NaHat =zeros(8, noOfNeurons);
     KHat = zeros(5,noOfNeurons);
-    NaNoise = randn(8,nt1,noOfNeurons);
-    KNoise = randn(5,nt1,noOfNeurons);
+    NaNoise = randn(8,nt1,noOfNeurons)*n_s;
+    KNoise = randn(5,nt1,noOfNeurons)*n_s;
     
     
     % Drift Na
