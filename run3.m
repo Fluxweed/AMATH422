@@ -4,10 +4,10 @@
 % noise model 
 
 n_neurons = 2;
-ntrials = 1;
+ntrials = 25;
 noise_intensity = 1;
 coupling_strength = 0:0.1:1;
-t = [0:0.01:50];
+t = [0:0.01:300];
 noise = {'Subunit', 'FoxLuSystemSize', 'VClamp', 'MarkovChain', 'ODE'};
 
 mdp_su = zeros(1, length(ntrials));
@@ -23,7 +23,7 @@ mdp_ode_means = zeros(1, length(coupling_strength));
 mdp_mc_means = zeros(1, length(coupling_strength));
 
 for i = 1:length(coupling_strength)
-    for j = 1:ntrials
+    parfor j = 1:ntrials
 
         kappa = coupling_strength(i);   
         [delta_phi_su, lengths_su] = multiple_phase_offsets(t, n_neurons, kappa, noise_intensity, noise{1});
