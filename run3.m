@@ -4,7 +4,7 @@
 % noise model 
 
 n_neurons = 2;
-ntrials = 25;
+ntrials = 50;
 noise_intensity = 1;
 coupling_strength = 0:0.1:1;
 t = [0:0.01:300];
