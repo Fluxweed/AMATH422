@@ -1,5 +1,5 @@
 %% reproducing figure 2
-% compute interspike intervals for each type of added noise, then plot
+% compute mean interspike intervals for each noise model, then plot
 % for varying amounts of input current
 clear all; close all; clc; 
 
@@ -11,9 +11,13 @@ noise = string({'Markov Chain', 'Subunit', 'VClamp', 'FoxLuSystemSize', 'Current
 noise_legend = string({'Markov Chain', 'Subunit', 'V. Clamp', 'Syst. Size', 'Current'});
 
 [mc_mean_isi, mc_std_isi, mc_cv, mc_cv_std] = isi(t, noise(1), DC_current, ntrials_mc); 
+disp('1');
 [s_mean_isi, s_std_isi, s_cv, s_cv_std] = isi(t, noise(2), DC_current, ntrials); 
-[vc_mean_isi, vc_std_isi, vc_cv, vc_cv_std] = isi(t, noise(3), DC_current, ntrials); 
-[ss_mean_isi, ss_std_isi, ss_cv, ss_cv_std] = isi(t, noise(4), DC_current, ntrials); 
+disp('2');
+[vc_mean_isi, vc_std_isi, vc_cv, vc_cv_std] = isi(t, noise(3), DC_current, ntrials);
+disp('3');
+[ss_mean_isi, ss_std_isi, ss_cv, ss_cv_std] = isi(t, noise(4), DC_current, ntrials);
+disp('4');
 [c_mean_isi, c_std_isi, c_cv, c_cv_std] = isi(t, noise(5), DC_current, ntrials); 
 
 % figure 2A

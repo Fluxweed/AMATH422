@@ -1,6 +1,6 @@
 % returns the mean interspike interval for a single voltage trace given
 % the time and the voltages
-function mean_isi = isi_coupled(time, voltage)        
+function [mean_isi, spike_times] = isi_coupled(time, voltage)        
 
     spiking_thresh = 40; 
     spike_voltages = zeros(length(time), 1);
