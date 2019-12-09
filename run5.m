@@ -7,7 +7,7 @@ clear all; close all; clc;
 % subunit noise
 t = [0:0.01:300];
 noise = 'Subunit';
-ntrials = 50;
+ntrials = 10;
 n_neurons = 2;
 coupling_strength = 0:0.1:1; 
 noise_intensity = 0:0.3:3;
@@ -16,7 +16,7 @@ noise_intensity = 0:0.3:3;
 % conductance noise
 t = [0:0.01:300];
 noise = 'FoxLuSystemSize';
-ntrials = 1;
+ntrials = 10;
 n_neurons = 2;
 coupling_strength = 0:0.1:1; 
 noise_intensity = 0:0.3:3;
@@ -25,7 +25,7 @@ noise_intensity = 0:0.3:3;
 % voltage clamp noise
 t = [0:0.01:300];
 noise = 'VClamp';
-ntrials = 50;
+ntrials = 10;
 n_neurons = 2;
 coupling_strength = 0:0.1:1; 
 noise_intensity = 0:0.3:3;
@@ -34,7 +34,7 @@ noise_intensity = 0:0.3:3;
 % markov chain noise
 t = [0:0.01:300];
 noise = 'MarkovChain';
-ntrials = 50;
+ntrials = 10;
 n_neurons = 2;
 coupling_strength = 0:0.1:1; 
 noise_intensity = 0:0.3:3;

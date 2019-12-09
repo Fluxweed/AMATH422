@@ -1,11 +1,11 @@
 % run 4
 % mean interspike interval as a function of noise intensity 
 % for a fixed coupling strength
-ntrials = 50;
+ntrials = 10;
 kappa = 0.3; 
-t = [0:0.01:500];
+t = [0:0.01:300];
 noise = {'Subunit', 'FoxLuSystemSize', 'VClamp', 'MarkovChain'};
-noise_intensity = 0:0.1:7;
+noise_intensity = 0:0.3:7;
 n_neurons = 2;
 isi_vec_subunit = zeros(1, length(noise_intensity));
 isi_vec2_subunit = zeros(1, length(noise_intensity));
@@ -15,7 +15,7 @@ isi_vec_vc = zeros(1, length(noise_intensity));
 isi_vec2_vc = zeros(1, length(noise_intensity));
 isi_vec_mc = zeros(1, length(noise_intensity));
 isi_vec2_mc = zeros(1, length(noise_intensity));
-for j = 1:length(noise_intensity)
+parfor j = 1:length(noise_intensity)
     n_s = noise_intensity(j);
     [avg_mean_isi_su, avg_mean_isi2_su] = mean_isi_coupled(t, noise{1}, ntrials, n_neurons, kappa, n_s);
     isi_vec_subunit(1, j) = avg_mean_isi_su;
