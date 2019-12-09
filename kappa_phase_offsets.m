@@ -1,0 +1,58 @@
+% plots mean phase offset for a range of coupling strengths for each  
+% noise model 
+
+n_neurons = 2;
+ntrials = 1;
+noise_intensity = 1;
+coupling_strength = 0:0.1:1;
+t = [0:0.01:100];
+noise = {'Subunit', 'FoxLuSystemSize', 'VClamp', 'MarkovChain', 'ODE'};
+
+mdp_su = zeros(1, length(ntrials));
+mdp_cd = zeros(1, length(ntrials));
+mdp_vc = zeros(1, length(ntrials));
+mdp_ode = zeros(1, length(ntrials)); 
+mdp_mc = zeros(1, length(ntrials));
+
+mdp_su_means = zeros(1, length(coupling_strength));
+mdp_cd_means = zeros(1, length(coupling_strength));
+mdp_vc_means = zeros(1, length(coupling_strength));
+mdp_ode_means = zeros(1, length(coupling_strength)); 
+mdp_mc_means = zeros(1, length(coupling_strength));
+
+for i = 1:length(coupling_strength)
+    for j = 1:ntrials
+
+        kappa = coupling_strength(i);   
+        [delta_phi_su, lengths_su] = multiple_phase_offsets(t, n_neurons, kappa, noise_intensity, noise{1});
+        [delta_phi_cd, lengths_cd] = multiple_phase_offsets(t, n_neurons, kappa, noise_intensity, noise{2});
+        [delta_phi_vc, lengths_vc] = multiple_phase_offsets(t, n_neurons, kappa, noise_intensity, noise{3});
+        [delta_phi_ode, lengths_ode] = multiple_phase_offsets(t, n_neurons, kappa, noise_intensity, noise{4});
+        [delta_phi_mc, lengths_mc] = multiple_phase_offsets(t, n_neurons, kappa, noise_intensity, noise{5});
+        
+        mdp_su(j) = mean(delta_phi_su);
+        mdp_cd(j) = mean(delta_phi_cd);
+        mdp_vc(j) = mean(delta_phi_vc);
+        mdp_ode(j) = mean(delta_phi_ode);
+        mdp_mc(j) = mean(delta_phi_mc);
+
+    end
+    mdp_su_means(i) = mean(mdp_su);
+    mdp_cd_means(i) = mean(mdp_cd);
+    mdp_vc_means(i) = mean(mdp_vc);
+    mdp_ode_means(i) = mean(mdp_ode);
+    mdp_mc_means(i) = mean(mdp_mc);
+end
+
+figure(1);
+hold on;
+plot(coupling_strength, mdp_su_means);
+plot(coupling_strength, mdp_cd_means);
+plot(coupling_strength, mdp_vc_means);
+plot(coupling_strength, mdp_ode_means);
+plot(coupling_strength, mdp_mc_means);
+xlabel('Coupling Strength, \kappa');
+ylabel('Mean Phase Offset, <\Delta\Phi>');
+legend(noise);
+legend boxoff;
+    
