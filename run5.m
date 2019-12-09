@@ -7,7 +7,7 @@ clear all; close all; clc;
 % subunit noise
 t = [0:0.01:300];
 noise = 'Subunit';
-ntrials = 1;
+ntrials = 50;
 n_neurons = 2;
 coupling_strength = 0:0.1:1; 
 noise_intensity = 0:0.3:3;
@@ -25,7 +25,7 @@ noise_intensity = 0:0.3:3;
 % voltage clamp noise
 t = [0:0.01:300];
 noise = 'VClamp';
-ntrials = 1;
+ntrials = 50;
 n_neurons = 2;
 coupling_strength = 0:0.1:1; 
 noise_intensity = 0:0.3:3;
@@ -34,11 +34,11 @@ noise_intensity = 0:0.3:3;
 % markov chain noise
 t = [0:0.01:300];
 noise = 'MarkovChain';
-ntrials = 1;
+ntrials = 50;
 n_neurons = 2;
 coupling_strength = 0:0.1:1; 
 noise_intensity = 0:0.3:3;
 [isi_matrix_mc, isi_matrix2_mc] = isi_matrix(t, noise, ntrials, n_neurons, noise_intensity, coupling_strength);
 
-saveas('run5_matrix', 'isi_matrix_su', 'isi_matrix2_su', 'isi_matrix_cd', 'isi_matrix2_cd', ...
+save('run5_matrix', 'isi_matrix_su', 'isi_matrix2_su', 'isi_matrix_cd', 'isi_matrix2_cd', ...
     'isi_matrix_vc', 'isi_matrix2_vc', 'isi_matrix_mc', 'isi_matrix2_mc');
