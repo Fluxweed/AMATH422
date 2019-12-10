@@ -4,7 +4,7 @@
 % noise model 
 
 n_neurons = 2;
-ntrials = 50;
+ntrials = 25;
 noise_intensity = 1;
 coupling_strength = 0:0.1:1;
 t = [0:0.01:300];
@@ -22,6 +22,18 @@ mdp_vc_means = zeros(1, length(coupling_strength));
 mdp_ode_means = zeros(1, length(coupling_strength)); 
 mdp_mc_means = zeros(1, length(coupling_strength));
 
+mdp_su_std = zeros(1, length(ntrials));
+mdp_cd_std = zeros(1, length(ntrials));
+mdp_vc_std = zeros(1, length(ntrials));
+mdp_ode_std = zeros(1, length(ntrials)); 
+mdp_mc_std = zeros(1, length(ntrials));
+
+mdp_su_err = zeros(1, length(coupling_strength));
+mdp_cd_err = zeros(1, length(coupling_strength));
+mdp_vc_err = zeros(1, length(coupling_strength));
+mdp_ode_err = zeros(1, length(coupling_strength)); 
+mdp_mc_err = zeros(1, length(coupling_strength));
+
 for i = 1:length(coupling_strength)
     parfor j = 1:ntrials
 
@@ -37,14 +49,27 @@ for i = 1:length(coupling_strength)
         mdp_vc(j) = mean(dist_from_asynchrony(delta_phi_vc(1:lengths_vc, :)));
         mdp_ode(j) = mean(dist_from_asynchrony(delta_phi_ode(1:lengths_ode, :)));
         mdp_mc(j) = mean(dist_from_asynchrony(delta_phi_mc(1:lengths_mc, :)));
-
+        
+        mdp_su(j) = std(dist_from_asynchrony(delta_phi_su(1:lengths_su, :)));
+        mdp_cd(j) = std(dist_from_asynchrony(delta_phi_cd(1:lengths_cd, :)));
+        mdp_vc(j) = std(dist_from_asynchrony(delta_phi_vc(1:lengths_vc, :)));
+        mdp_ode(j) = std(dist_from_asynchrony(delta_phi_ode(1:lengths_ode, :)));
+        mdp_mc(j) = std(dist_from_asynchrony(delta_phi_mc(1:lengths_mc, :)));
+        
     end
     mdp_su_means(i) = mean(mdp_su);
     mdp_cd_means(i) = mean(mdp_cd);
     mdp_vc_means(i) = mean(mdp_vc);
     mdp_ode_means(i) = mean(mdp_ode);
     mdp_mc_means(i) = mean(mdp_mc);
+    
+    mdp_su_err(i) = std(mdp_su_sd);
+    mdp_cd_err(i) = std(mdp_cd_sd);
+    mdp_vc_err(i) = std(mdp_vc_sd);
+    mdp_ode_err(i) = std(mdp_ode_sd);
+    mdp_mc_err(i) = std(mdp_mc_sd);
 end
 
-save('run3_phase_offsets', 'mdp_su_means', 'mdp_cd_means', 'mdp_vc_means', 'mdp_ode_means', 'mdp_mc_means');
+save('run3_phase_offsets_withstd', 'mdp_su_means', 'mdp_cd_means', 'mdp_vc_means', 'mdp_ode_means', 'mdp_mc_means', ...
+    'mdp_su_err', 'mdp_cd_err', 'mdp_vc_err', 'mdp_ode_err', 'mdp_mc_err');
     
