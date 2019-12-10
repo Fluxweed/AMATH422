@@ -123,6 +123,7 @@ end
 
 % Subunit Noise (FL Model)
 if strfind(NoiseModel,'Subunit')
+    % turn scalar values into arrays to account for multiple neurons
     mNoiseVec = randn(nt1,noOfNeurons)*n_s;
     % Imposing bounds on argument of sqrt functions, not directly altering dynamics of the subunits
     mNoise = @(V,m,i,k) sqrt((alpham(V)*(1-m) + betam(V)*m)/NNa) * mNoiseVec(i-1,k);
@@ -250,13 +251,14 @@ end
 
 for i=2:nt
     
-    % Input Current
+    % Input Current and coupling term
     I_coupled =  K.*Icoupled(V0);
     I = Ifunc(t(i-1)) +I_coupled;
     
     %Update subunits
     % Noise terms are non-zero for Subunit Noise model
     
+    %for each neuron calculate subunit kinetics
     for k = 1:noOfNeurons
         m(k) = m0(k) + dt*(alpham(V0(k))*(1-m0(k)) - betam(V0(k))*m0(k)) + mNoise(V0(k),m0(k),i,k)*sqrt(dt);  % shifted to i-1 in function
         h(k) = h0(k) + dt*(alphah(V0(k))*(1-h0(k)) - betah(V0(k))*h0(k)) + hNoise(V0(k),h0(k),i,k)*sqrt(dt);
@@ -338,7 +340,8 @@ for i=2:nt
             NaFraction(k) = max(0, min(1, m0(k)^3*h0(k) + NaFluctuation));  % Fluctuations are non-zero for Conductance Noise Models
             KFraction(k) = max(0, min(1, n0(k)^4 + KFluctuation));
             
-            
+            function YCoupled = noised_coupling( noOfNeurons, K, noise_intensity, t, Ifunc,SigmaIn, Area, NoiseModel)
+
         end
     end
     
@@ -377,6 +380,9 @@ end % End Function Definition
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% END OF SOLVER                 %%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%coupling function for a row of neurons
 function Vcoupled = Icoupled(V0)
 Vcoupled =zeros(size(V0));
 if size(V0,2) ==1
@@ -384,11 +390,14 @@ if size(V0,2) ==1
 else
     
     for i = 1:size(V0,2)
+        %if first neuron, 
         if i == 1
             Vcoupled(i) = V0(i + 1) - V0(i);
+        %if last neuron,
         elseif i == size(V0,2)
             Vcoupled(i) = V0(i - 1) - V0(i);
         else
+         % for all neurons in the middle there are two interactions
             Vcoupled(i) = (V0(i - 1) - V0(i)) + (V0(i + 1) - V0(i));
         end
     end

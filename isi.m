@@ -7,7 +7,7 @@ function [mean_cur_isi, std_cur_isi, mean_cv_isi, std_cv_isi] = isi(t, noise, DC
     mean_cv_isi = zeros(1, length(DC_current));
     std_cv_isi = zeros(1, length(DC_current));
 
-    for i = DC_current
+    parfor i = DC_current
         mean_isi_vec = zeros(1, ntrials);
         cv_isi_vec = zeros(1, ntrials);
         for j = 1:ntrials 
