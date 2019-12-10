@@ -46,8 +46,8 @@ function [mean_cur_isi, std_cur_isi, mean_cv_isi, std_cv_isi] = isi(t, noise, DC
 
         mean_cur_isi(i + 1) = mean(mean_isi_vec);
         std_cur_isi(i + 1) = std(mean_isi_vec);
-        mean_cv_isi(i + 1) = mean(cv_isi);
-        std_cv_isi(i + 1) = std(cv_isi);
+        mean_cv_isi(i + 1) = mean(cv_isi_vec);
+        std_cv_isi(i + 1) = std(cv_isi_vec);
 
     end 
 end

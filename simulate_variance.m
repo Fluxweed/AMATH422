@@ -46,10 +46,8 @@ nt1 = nt-1;  % at which to solve
 t0 = t(1);
 
 
-%simulation for variance
-%no of simulation
-
-
+% simulation for variance
+% initialize all subunits 
 if sim ==1
     nSim = nSim;
     simSystem = zeros(nt, nSim);
@@ -75,7 +73,9 @@ Y = zeros(nt,7);
 %Y(1,:) = [t0, V0, m0^3*h0, n0^4, m0, h0, n0];
 
 
-
+mNoise = @(V,m,i) 0;
+hNoise = @(V,h,i) 0;
+nNoise = @(V,n,i) 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Parameter Values
 
@@ -102,73 +102,12 @@ EL = 10.6; % mV
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Determine Which Noise Model and Do Some Necessary Setup
 
-% No Noise
-if strfind(NoiseModel,'ODE')
-    % Nothing to do
-end
-
-% Current Noise
-if strfind(NoiseModel,'Current')
-    VNoise = SigmaIn*randn(nt1,1);
-else
-    VNoise = zeros(nt1,1);
-end
-
-% Subunit Noise (FL Model)
-if strfind(NoiseModel,'Subunit')
-    mNoiseVec = randn(nt1,1);
-    % Imposing bounds on argument of sqrt functions, not directly altering dynamics of the subunits
-    mNoise = @(V,m,i) sqrt((alpham(V)*(1-m) + betam(V)*m)/NNa) * mNoiseVec(i-1);
-    hNoiseVec = randn(nt1,1);
-    hNoise = @(V,h,i) sqrt((alphah(V)*(1-h) + betah(V)*h)/NNa) * hNoiseVec(i-1);
-    
-    nNoiseVec = randn(nt1,1);
-    nNoise = @(V,n,i) sqrt((alphan(V)*(1-n) + betan(V)*n)/NK)  * nNoiseVec(i-1);
-else
-    mNoise = @(V,m,i) 0;
-    hNoise = @(V,h,i) 0;
-    nNoise = @(V,n,i) 0;
-end
-
-% Conductance Noise (Linaro et al Voltage Clamp)
-if strfind(NoiseModel,'VClamp')
-    ConductanceNoise = 1;
-    NaWeiner = randn(nt1,7);
-    KWeiner = randn(nt1,4);
-    NaNoise =0;  % Initialize
-    KNoise =0;  % Initialize
-    
-    taum = @(V) 1./ (alpham(V) + betam(V));
-    tauh = @(V) 1./ (alphah(V) + betah(V));
-    denomNa = @(V) NNa * (alphah(V) + betah(V)).^2 .*(alpham(V) + betam(V)).^6;
-    TauNa = @(V) [taum(V)./[1 2 3] ...
-        tauh(V) ...
-        taum(V).*tauh(V)./(taum(V) + tauh(V)) ...
-        taum(V).*tauh(V)./(taum(V) + 2*tauh(V)) ...
-        taum(V).*tauh(V)./(taum(V) + 3*tauh(V))];
-    CovNa = @(V) [3*alphah(V).^2.*alpham(V).^5.*betam(V) ...
-        3*alphah(V).^2.*alpham(V).^4.*betam(V).^2 ...
-        alphah(V).^2.*alpham(V).^3.*betam(V).^3 ...
-        alphah(V).*betah(V).*alpham(V).^6 ...
-        3*alphah(V).*betah(V).*alpham(V).^5.*betam(V) ...
-        3*alphah(V).*betah(V).*alpham(V).^4.*betam(V).^2 ...
-        alphah(V).*betah(V).*alpham(V).^3.*betam(V).^3] ./denomNa(V);
-    
-    taun = @(V) 1./ (alphan(V) + betan(V));
-    TauK = @(V) taun(V) ./ [1 2 3 4];
-    CovK = @(V) [4*alphan(V).^7.*betan(V) ...
-        4*alphan(V).^6.*betan(V).^2 ...
-        4*alphan(V).^5.*betan(V).^3 ...
-        4*alphan(V).^4.*betan(V).^4]./(NK*(alphan(V)+betan(V)).^8);
-    
-    SigmaNa = @(V) sqrt(2*CovNa(V) ./ TauNa(V));
-    SigmaK =  @(V) sqrt(2*CovK(V) ./ TauK(V));
-    
-end
 
 % Conductance Noise (FL Channel Model)
 if strfind(NoiseModel,'FoxLuSystemSize')
     if sim ==1
+        %convert function outputs into arrays depending on number of 
+        simlations
         NaHat =zeros(8, nSim);
         KHat = zeros(5,nSim);
         NaNoise = randn(8,nt1,nSim);
@@ -275,11 +214,6 @@ for i=2:nt
     % Update Fluctuations if using conductance noise model
     if ~isempty(strfind(NoiseModel,'VClamp')) || ~isempty(strfind(NoiseModel,'FoxLuSystemSize'))
         switch NoiseModel
-            case 'VClamp'  % Voltage Clamp (Linaro et al)
-                NaNoise = NaNoise + dt*(-NaNoise ./ TauNa(V0)) + sqrt(dt)*(SigmaNa(V0).*NaWeiner(i-1,:));
-                KNoise = KNoise + dt*(-KNoise ./ TauK(V0)) + sqrt(dt)*(SigmaK(V0).*KWeiner(i-1,:));
-                NaFluctuation = sum(NaNoise);
-                KFluctuation = sum(KNoise);
             case 'FoxLuSystemSize'  % System Size (Fox and Lu)
                 if sim ==1
                     %deterministic part
@@ -288,6 +222,8 @@ for i=2:nt
                     NaBar = [(1-m0)^3*(1-h0) , 3*(1-m0)^2*m0*(1-h0) , 3*(1-m0)*m0^2*(1-h0) , m0^3*(1-h0) , (1-m0)^3*h0 , 3*(1-m0)^2*m0*h0 , 3*(1-m0)*m0^2*h0 , m0^3*h0];
                     KBar  = [(1-n0)^4 , 4*n0*(1-n0)^3 , 6*n0^2*(1-n0)^2  , 4*n0^3*(1-n0)  , n0^4];
                     
+                    % generate fluctuations as many as the number of
+                    % simulation
                     for j =1:nSim
                         NaHat(:,j) = NaHat(:,j) + dt*ANa(V0(j))*NaHat(:,j) + sqrt(dt)*SNa(V0(j),NaBar,NNa)*NaNoise(:,i-1,j);
                         KHat(:,j) =  KHat(:,j)  + dt*AK(V0(j))*KHat(:,j)  + sqrt(dt)*SK(V0(j),KBar)*KNoise(:,i-1,j);
@@ -325,7 +261,7 @@ for i=2:nt
     end
     
     % Update Voltage
-    if sim ==1
+    if sim ==1 % array operations if simulating variance
         Vrhs = (-gNa*(NaFraction).*(V0 - ENa)-gK*(KFraction).*(V0 - EK) - gL*(V0-EL) + I)/C;
         V = V0 + dt*Vrhs + sqrt(dt)*VNoise(i-1)/C ;   % VNoise is non-zero for Current Noise Model
         
@@ -348,10 +284,7 @@ for i=2:nt
         Y(i,3) = NaFraction;
         Y(i,4) = KFraction;
         Y(i,1) = t(i);
-        
-        
-        
-        
+         
     end
     V0 = V;
     
